@@ -26,13 +26,12 @@ jobs:
       - name: Get latest build artifact folder
         id: get-latest
         run: |
-          # List all "build-artifact-v*" folders and pick the latest
           LATEST_FOLDER=$(az storage blob list \
             --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
             --container-name artifacts \
             --auth-mode login \
             --query "[].name" \
-            --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort | tail -n 1)
+            --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
 
           echo "Latest folder: $LATEST_FOLDER"
           echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
@@ -53,4 +52,5 @@ jobs:
           swa deploy dist \
             --app-name Instalike123 \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --env production 
+            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            --env production
