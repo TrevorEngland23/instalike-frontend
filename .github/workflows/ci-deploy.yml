@@ -11,11 +11,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
+      
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -23,6 +20,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+  
       - name: Get latest build artifact folder
         id: get-latest
         run: |
@@ -32,7 +30,6 @@ jobs:
             --auth-mode login \
             --query "[].name" \
             --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
-
           echo "Latest folder: $LATEST_FOLDER"
           echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
 
@@ -47,10 +44,11 @@ jobs:
             --pattern "${{ steps.get-latest.outputs.folder }}/*"
 
       - name: Deploy to Azure Static Web App
-        run: |
-          npm install -g @azure/static-web-apps-cli
-          swa deploy dist \
-            --app-name Instalike123 \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
-            --env production
+        uses: azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} 
+          action: "upload"
+          app_location: "dist"
+          output_location: ""
+          skip_app_build: true
