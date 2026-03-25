@@ -34,4 +34,5 @@ jobs:
           az storage blob upload-batch \
             --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
             --destination artifacts/${{ github.sha }} \
+            --auth-mode login \
             --source dist
