@@ -12,6 +12,10 @@ jobs:
       id-token: write
       contents: read
 
+    env:
+      STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
+      ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}        
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -41,7 +45,7 @@ jobs:
           echo "Uploading to folder: build-artifact-v$VERSION"
 
           az storage blob upload-batch \
-            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
-            --destination artifacts/build-artifact-v$VERSION \
+            --account-name $STORAGE_ACCOUNT \
+            --destination $ARTIFACT_CONTAINER/build-artifact-v$VERSION \
             --auth-mode login \
             --source dist

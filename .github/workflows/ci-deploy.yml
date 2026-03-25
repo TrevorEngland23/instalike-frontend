@@ -15,8 +15,11 @@ jobs:
       id-token: write
       contents: read
 
+    env:
+      STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
+      ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
+
     steps:
-      
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -24,16 +27,17 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  
       - name: Get latest build artifact folder
         id: get-latest
         run: |
+          # List all "build-artifact-v*" folders and pick the latest semver
           LATEST_FOLDER=$(az storage blob list \
-            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
-            --container-name artifacts \
+            --account-name $STORAGE_ACCOUNT \
+            --container-name $ARTIFACT_CONTAINER \
             --auth-mode login \
             --query "[].name" \
             --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
+
           echo "Latest folder: $LATEST_FOLDER"
           echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
 
@@ -41,9 +45,9 @@ jobs:
         run: |
           mkdir -p dist
           az storage blob download-batch \
-            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --account-name $STORAGE_ACCOUNT \
             --auth-mode login \
-            --source artifacts \
+            --source $ARTIFACT_CONTAINER \
             --destination dist \
             --pattern "${{ steps.get-latest.outputs.folder }}/*"
 
