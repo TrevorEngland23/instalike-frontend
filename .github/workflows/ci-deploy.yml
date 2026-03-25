@@ -28,6 +28,7 @@ jobs:
           mkdir dist
           az storage blob download-batch \
             --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT}} \
+            --auth-mode login \
             --source artifacts/${{ github.event.workflow_run.head_sha }} \
             --destination dist
 
