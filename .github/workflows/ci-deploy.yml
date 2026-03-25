@@ -52,5 +52,4 @@ jobs:
           npm install -g @azure/static-web-apps-cli
           swa deploy dist \
             --app-name Instalike123 \
-            --env production \
-            --auth-mode login
+            --env production 
