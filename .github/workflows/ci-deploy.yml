@@ -16,20 +16,40 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Download build artifact from CI
-        uses: actions/download-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          name: build
-          path: dist
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Install SWA CLI
-        run: npm install -g @azure/static-web-apps-cli
+      - name: Get latest build artifact folder
+        id: get-latest
+        run: |
+          # List all "build-artifact-v*" folders and pick the latest
+          LATEST_FOLDER=$(az storage blob list \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --container-name artifacts \
+            --auth-mode login \
+            --query "[].name" \
+            --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort | tail -n 1)
+
+          echo "Latest folder: $LATEST_FOLDER"
+          echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
+
+      - name: Download latest artifact
+        run: |
+          mkdir -p dist
+          az storage blob download-batch \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --auth-mode login \
+            --source artifacts \
+            --destination dist \
+            --pattern "${{ steps.get-latest.outputs.folder }}/*"
 
       - name: Deploy to Azure Static Web App
         run: |
+          npm install -g @azure/static-web-apps-cli
           swa deploy dist \
             --env production \
             --app-name Instalike23

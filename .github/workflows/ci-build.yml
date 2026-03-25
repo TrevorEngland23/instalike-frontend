@@ -27,8 +27,21 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          name: build
-          path: dist/
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload artifact to Blob with versioned folder
+        run: |
+          # Use GitHub run number to auto-increment version
+          VERSION=1.0.${{ github.run_number }}
+          echo "Uploading to folder: build-artifact-v$VERSION"
+
+          az storage blob upload-batch \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --destination artifacts/build-artifact-v$VERSION \
+            --auth-mode login \
+            --source dist
