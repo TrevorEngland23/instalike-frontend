@@ -52,4 +52,5 @@ jobs:
           npm install -g @azure/static-web-apps-cli
           swa deploy dist \
             --app-name Instalike123 \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --env production 
