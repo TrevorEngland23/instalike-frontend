@@ -52,5 +52,5 @@ jobs:
           swa deploy dist \
             --app-name Instalike123 \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
             --env production
