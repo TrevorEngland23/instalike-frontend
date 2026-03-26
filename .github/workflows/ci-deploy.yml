@@ -5,7 +5,6 @@ on:
     workflows: ["CI - Build Frontend"]
     types:
       - completed
-
   workflow_dispatch:
 
 jobs:
@@ -20,6 +19,8 @@ jobs:
     env:
       STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
       ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      SWA_NAME: ${{ vars.AZURE_SWA_NAME }}
 
     steps:
       - name: Checkout code
@@ -41,7 +42,6 @@ jobs:
             --auth-mode login \
             --query "[].name" \
             --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
-
           echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
 
       - name: Download latest artifact
@@ -54,17 +54,22 @@ jobs:
             --destination dist \
             --pattern "${{ steps.get-latest.outputs.folder }}/*"
 
+      - name: Flatten artifact folder
+        run: |
+          # Move contents of the versioned folder to dist/
+          mv dist/${{ steps.get-latest.outputs.folder }}/* dist/
+          rm -rf dist/${{ steps.get-latest.outputs.folder }}
+
       - name: Debug SWA token
         run: |
           TOKEN='${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}'
+          echo "Token length: ${#TOKEN}"
           echo "Starts with: ${TOKEN:0:10}"
 
-      - name: Deploy to Azure Static Web App
-        uses: azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "dist"
-          output_location: ""
-          skip_app_build: true
+      - name: Deploy to Azure Static Web App (CLI)
+        run: |
+          az staticwebapp upload \
+            --name $SWA_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --source ./dist \
+            --token "${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}"
