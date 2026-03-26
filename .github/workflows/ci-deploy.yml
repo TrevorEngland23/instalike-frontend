@@ -14,11 +14,15 @@ jobs:
     permissions:
       id-token: write
       contents: read
+
     env:
       STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
       ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -29,7 +33,6 @@ jobs:
       - name: Get latest build artifact folder
         id: get-latest
         run: |
-          # List all "build-artifact-v*" folders and pick the latest semver
           LATEST_FOLDER=$(az storage blob list \
             --account-name $STORAGE_ACCOUNT \
             --container-name $ARTIFACT_CONTAINER \
@@ -37,7 +40,6 @@ jobs:
             --query "[].name" \
             --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
 
-          echo "Latest folder: $LATEST_FOLDER"
           echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
 
       - name: Download latest artifact
@@ -54,8 +56,8 @@ jobs:
         uses: azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} 
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "dist"
+          app_location: "dist/${{ steps.get-latest.outputs.folder }}"
           output_location: ""
           skip_app_build: true
