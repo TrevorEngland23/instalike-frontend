@@ -52,6 +52,11 @@ jobs:
             --destination dist \
             --pattern "${{ steps.get-latest.outputs.folder }}/*"
 
+      - name: Debug SWA token length
+        run: |
+          TOKEN="${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}"
+          echo "Token length: ${#TOKEN}"
+
       - name: Deploy to Azure Static Web App
         uses: azure/static-web-apps-deploy@v1
         with:
