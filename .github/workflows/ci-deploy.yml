@@ -73,3 +73,5 @@ jobs:
         run: |
           swa deploy dist \
             --deployment-token "${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}"
+            --app-name Instalike123 \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}"
