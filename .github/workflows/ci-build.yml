@@ -3,6 +3,8 @@ name: CI - Build Frontend
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+    - '.github/workflows/ci-deploy.yml'
 
 jobs:
   build:

@@ -6,6 +6,8 @@ on:
     types:
       - completed
 
+  workflow_dispatch:
+
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -66,3 +68,4 @@ jobs:
           app_location: "dist/${{ steps.get-latest.outputs.folder }}"
           output_location: ""
           skip_app_build: true
+          production_branch: main
