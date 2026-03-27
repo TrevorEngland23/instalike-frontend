@@ -73,5 +73,4 @@ jobs:
           swa deploy dist \
             --app-name $SWA_NAME \
             --resource-group $RESOURCE_GROUP \
-            --deployment-token ${{ secrets.SWA_DEPLOYMENT_TOKEN }} \
             --env production
