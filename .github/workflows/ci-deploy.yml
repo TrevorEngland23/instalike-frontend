@@ -67,4 +67,4 @@ jobs:
           swa deploy dist \
             --app-name "$SWA_NAME" \
             --resource-group "$RESOURCE_GROUP"
-            --env production
+            --environment-name production
