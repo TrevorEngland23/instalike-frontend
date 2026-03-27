@@ -1,4 +1,4 @@
-name: CD - Deploy Frontend To SWA
+name: CD - Deploy Frontend
 
 on:
   workflow_run:
@@ -21,12 +21,13 @@ jobs:
       ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       SWA_NAME: ${{ vars.AZURE_SWA_NAME }}
+      SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Azure Login
+      - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -59,12 +60,16 @@ jobs:
           mv dist/${{ steps.get-latest.outputs.folder }}/* dist/
           rm -rf dist/${{ steps.get-latest.outputs.folder }}
 
-      - name: Install Static Web Apps CLI
-        run: npm install -g @azure/static-web-apps-cli
-
-      - name: Deploy with SWA CLI (OIDC)
+      - name: Zip deployment package
         run: |
-          swa deploy dist \
-            --app-name "$SWA_NAME" \
-            --resource-group "$RESOURCE_GROUP"
-            --environment-name production
+          cd dist
+          zip -r ../deploy.zip .
+          cd ..
+
+      - name: Deploy to Static Web App (Production)
+        run: |
+          az rest \
+            --method post \
+            --uri "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Web/staticSites/$SWA_NAME/builds?api-version=2022-09-01" \
+            --headers "Content-Type=application/zip" \
+            --body @"deploy.zip"
