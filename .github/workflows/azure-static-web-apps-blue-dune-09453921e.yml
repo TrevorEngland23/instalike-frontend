@@ -67,7 +67,7 @@ jobs:
           result-encoding: string
 
       - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
+        uses: Azure/static-web-apps-deploy@v1.1.2
         with:
           action: "upload"
           app_location: "dist"
