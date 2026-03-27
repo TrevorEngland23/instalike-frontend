@@ -34,6 +34,14 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli
+
       - name: Get latest build artifact folder
         id: get-latest
         run: |
@@ -60,16 +68,9 @@ jobs:
           mv dist/${{ steps.get-latest.outputs.folder }}/* dist/
           rm -rf dist/${{ steps.get-latest.outputs.folder }}
 
-      - name: Zip deployment package
-        run: |
-          cd dist
-          zip -r ../deploy.zip .
-          cd ..
-
       - name: Deploy to Static Web App (Production)
         run: |
           swa deploy dist \
             --app-name $SWA_NAME \
             --resource-group $RESOURCE_GROUP \
-            --environment-name production
-
+            --env production
