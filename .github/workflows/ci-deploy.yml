@@ -70,6 +70,6 @@ jobs:
         run: |
           az rest \
             --method post \
-            --uri "https://${SWA_NAME}.azurestaticapps.net/api/zipdeploy" \
+            --uri "https://purple-sand-05868e61e.2.azurestaticapps.net/api/zipdeploy?api_version=2022-03-01" \
             --headers "Content-Type: application/zip" \
             --body @"deploy.zip"
