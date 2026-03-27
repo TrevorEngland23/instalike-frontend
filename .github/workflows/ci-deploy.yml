@@ -73,5 +73,5 @@ jobs:
           swa deploy dist \
             --app-name $SWA_NAME \
             --resource-group $RESOURCE_GROUP \
-            --deployment-token "${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_PLANT_01F174C1E }}" \
+            --deployment-token ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_PLANT_01F174C1E }} \
             --env production
