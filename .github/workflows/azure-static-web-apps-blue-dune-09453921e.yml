@@ -1,0 +1,78 @@
+name: Azure Static Web Apps Deployment
+
+on:
+  workflow_run:
+    workflows: ["CI - Build Frontend"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    name: Deploy to Azure Static Web Apps
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
+      ARTIFACT_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get latest build artifact folder
+        id: get-latest
+        run: |
+          LATEST_FOLDER=$(az storage blob list \
+            --account-name $STORAGE_ACCOUNT \
+            --container-name $ARTIFACT_CONTAINER \
+            --auth-mode login \
+            --query "[].name" \
+            --output tsv | cut -d'/' -f1 | grep 'build-artifact-v' | sort -V | tail -n 1)
+          echo "folder=$LATEST_FOLDER" >> $GITHUB_OUTPUT
+
+      - name: Download latest artifact
+        run: |
+          mkdir -p dist
+          az storage blob download-batch \
+            --account-name $STORAGE_ACCOUNT \
+            --auth-mode login \
+            --source $ARTIFACT_CONTAINER \
+            --destination dist \
+            --pattern "${{ steps.get-latest.outputs.folder }}/*"
+
+      - name: Flatten artifact folder
+        run: |
+          mv dist/${{ steps.get-latest.outputs.folder }}/* dist/
+          rm -rf dist/${{ steps.get-latest.outputs.folder }}
+
+      - name: Install OIDC Client from Core Package
+        run: npm install @actions/core@1.6.0 @actions/http-client
+
+      - name: Get Id Token
+        uses: actions/github-script@v6
+        id: idtoken
+        with:
+          script: |
+            const core = require('@actions/core')
+            return await core.getIDToken()
+          result-encoding: string
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          action: "upload"
+          app_location: "dist"
+          skip_app_build: true
+          github_id_token: ${{ steps.idtoken.outputs.result }}
