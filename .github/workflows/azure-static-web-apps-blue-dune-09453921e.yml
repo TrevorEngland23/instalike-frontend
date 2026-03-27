@@ -5,6 +5,7 @@ on:
     workflows: ["CI - Build Frontend"]
     types:
       - completed
+  workflow: dispatch:
 
 jobs:
   deploy:
