@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main"]
     paths-ignore:
-    - '.github/workflows/ci-deploy.yml'
+    - '.github/workflows/azure-static-web-apps-blue-dune-09453921e.yml'
 
 jobs:
   build:
