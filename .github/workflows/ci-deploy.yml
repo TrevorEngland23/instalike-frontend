@@ -70,6 +70,6 @@ jobs:
         run: |
           az rest \
             --method post \
-            --uri "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Web/staticSites/$SWA_NAME/builds?api-version=2022-09-01" \
-            --headers "Content-Type=application/zip" \
+            --uri "https://${SWA_NAME}.azurestaticapps.net/api/zipdeploy" \
+            --headers "Content-Type: application/zip" \
             --body @"deploy.zip"
