@@ -99,18 +99,18 @@ export default function Profile() {
                         setImages((prev) => {
                             const normalizedName = normalize(msg.blobName);
 
-                            // Remove ANY placeholder for this blobName
+                            // Remove any existing skeleton/upload for this blobName and any upload skeletons
                             const withoutSkeleton = prev.filter(
-                                (img) => normalize(img.blobName) !== normalizedName
+                                (img) => normalize(img.blobName) !== normalizedName && !img.uploading
                             );
 
                             const newImage = {
                                 url: msg.url + `?t=${Date.now()}`,
                                 blobName: msg.blobName,
                                 processing: false,
-                                loaded: false,
                             };
 
+                            // Add new image at the top
                             return [newImage, ...withoutSkeleton];
                         });
                     }
@@ -382,21 +382,11 @@ export default function Profile() {
                                         deleteMode ? toggleSelect(img.blobName) : openModal(img.blobName)
                                     }
                                 >
-                                    {img.processing || img.uploading || !img.loaded ? (
-                                <div className="shimmer-skeleton" />
-                                ) : (
-                                <img
-                                    src={img.url}
-                                    alt=""
-                                    onLoad={() => {
-                                    setImages(prev =>
-                                        prev.map(i =>
-                                        i.blobName === img.blobName ? { ...i, loaded: true } : i
-                                        )
-                                    );
-                                    }}
-                                />
-                                )}
+                                    {img.processing || img.uploading ? (
+                                        <div className="shimmer-skeleton" />
+                                    ) : (
+                                        <img src={img.url} alt="" />
+                                    )}
 
                                     {/* overlay when in delete mode */}
                                     {deleteMode && (
