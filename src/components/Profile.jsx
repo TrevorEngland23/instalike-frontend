@@ -99,19 +99,18 @@ export default function Profile() {
                         setImages((prev) => {
                             const normalizedName = normalize(msg.blobName);
 
-                            // Remove any existing skeleton/upload for this blobName and any upload skeletons
+                            // Remove ANY placeholder for this blobName
                             const withoutSkeleton = prev.filter(
-                                (img) => normalize(img.blobName) !== normalizedName && !img.uploading
+                                (img) => normalize(img.blobName) !== normalizedName
                             );
 
                             const newImage = {
                                 url: msg.url + `?t=${Date.now()}`,
                                 blobName: msg.blobName,
                                 processing: false,
-                                loaded: false
+                                loaded: false,
                             };
 
-                            // Add new image at the top
                             return [newImage, ...withoutSkeleton];
                         });
                     }
