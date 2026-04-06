@@ -108,6 +108,7 @@ export default function Profile() {
                                 url: msg.url + `?t=${Date.now()}`,
                                 blobName: msg.blobName,
                                 processing: false,
+                                loaded: false
                             };
 
                             // Add new image at the top
@@ -382,11 +383,21 @@ export default function Profile() {
                                         deleteMode ? toggleSelect(img.blobName) : openModal(img.blobName)
                                     }
                                 >
-                                    {img.processing || img.uploading ? (
-                                        <div className="shimmer-skeleton" />
-                                    ) : (
-                                        <img src={img.url} alt="" />
-                                    )}
+                                    {img.processing || img.uploading || !img.loaded ? (
+                                <div className="shimmer-skeleton" />
+                                ) : (
+                                <img
+                                    src={img.url}
+                                    alt=""
+                                    onLoad={() => {
+                                    setImages(prev =>
+                                        prev.map(i =>
+                                        i.blobName === img.blobName ? { ...i, loaded: true } : i
+                                        )
+                                    );
+                                    }}
+                                />
+                                )}
 
                                     {/* overlay when in delete mode */}
                                     {deleteMode && (
