@@ -95,7 +95,7 @@ export default function Profile() {
                     // --------------------------
                     // Handle new images (skip placeholders)
                     // --------------------------
-                    if (msg.event === "new_image" && msg.url && msg.processed_at) {
+                    if (msg.event === "new_image") {
                         setImages((prev) => {
                             const normalizedName = normalize(msg.blobName);
 
