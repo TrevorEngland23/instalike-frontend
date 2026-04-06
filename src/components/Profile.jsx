@@ -384,7 +384,7 @@ export default function Profile() {
                                         deleteMode ? toggleSelect(img.blobName) : openModal(img.blobName)
                                     }
                                 >
-                                    {img.processing || img.uploading ? (
+                                    {img.processing || !img.loaded ||img.uploading ? (
                                         <div className="shimmer-skeleton" />
                                     ) : (
                                         <img src={img.url} alt="" />
