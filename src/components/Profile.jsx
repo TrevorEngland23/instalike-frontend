@@ -157,7 +157,7 @@ export default function Profile() {
             ws.onerror = (err) => {
                 console.error("WebSocket error:", err);
                 // close; onclose will schedule reconnect
-                try { ws.close(); } catch (e) {}
+                try { ws.close(); } catch (e) { }
             };
         } catch (err) {
             console.error("WebSocket connection failed:", err);
@@ -179,7 +179,7 @@ export default function Profile() {
             isMountedRef.current = false;
             try {
                 wsRef.current?.close();
-            } catch (e) {}
+            } catch (e) { }
             recentWsRef.current.clear();
         };
     }, [loadImages, setupWebSocket]);
@@ -201,7 +201,7 @@ export default function Profile() {
         setTimeout(() => {
             try {
                 lastFocusedRef.current?.focus?.();
-            } catch (e) {}
+            } catch (e) { }
         }, 0);
     }, []);
 
@@ -367,39 +367,48 @@ export default function Profile() {
                 {loading
                     ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="shimmer-skeleton" />)
                     : images.map((img, idx) => {
-                            const isSelected = selectedImages.includes(img.blobName);
-                            return (
-                                <div
-                                    key={img.blobName + (img.url || "")}
-                                    className={`photo-container ${img.deleting ? "deleting" : ""}`}
-                                    style={{
-                                        borderRadius: 8,
-                                        overflow: "hidden",
-                                        position: "relative",
-                                        cursor: deleteMode ? "pointer" : "pointer",
-                                    }}
-                                    onClick={() =>
-                                        deleteMode ? toggleSelect(img.blobName) : openModal(img.blobName)
-                                    }
-                                >
-                                    {img.processing || img.uploading ? (
-                                        <div className="shimmer-skeleton" />
-                                    ) : (
-                                        <img src={img.url} alt="" />
-                                    )}
+                        const isSelected = selectedImages.includes(img.blobName);
+                        return (
+                            <div
+                                key={img.blobName + (img.url || "")}
+                                className={`photo-container ${img.deleting ? "deleting" : ""}`}
+                                style={{
+                                    borderRadius: 8,
+                                    overflow: "hidden",
+                                    position: "relative",
+                                    cursor: deleteMode ? "pointer" : "pointer",
+                                }}
+                                onClick={() =>
+                                    deleteMode ? toggleSelect(img.blobName) : openModal(img.blobName)
+                                }
+                            >
+                                {img.processing || img.uploading ? (
+                                    <div className="shimmer-skeleton" />
+                                ) : (
+                                    <img
+                                        src={img.url}
+                                        alt=""
+                                        onError={(e) => {
+                                            const base = img.url.split("?")[0];
+                                            setTimeout(() => {
+                                                e.target.src = base + `?t=${Date.now()}`;
+                                            }, 500);
+                                        }}
+                                    />
+                                )}
 
-                                    {/* overlay when in delete mode */}
-                                    {deleteMode && (
-                                        <>
-                                            <div className={`select-overlay ${isSelected ? "selected" : ""}`} />
-                                            <div className={`check-badge ${isSelected ? "checked" : ""}`}>
-                                                <i className={isSelected ? "bi bi-check-lg" : "bi bi-circle"} />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                {/* overlay when in delete mode */}
+                                {deleteMode && (
+                                    <>
+                                        <div className={`select-overlay ${isSelected ? "selected" : ""}`} />
+                                        <div className={`check-badge ${isSelected ? "checked" : ""}`}>
+                                            <i className={isSelected ? "bi bi-check-lg" : "bi bi-circle"} />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })}
             </div>
 
             {/* Delete Mode Status Bar */}
@@ -511,7 +520,7 @@ export default function Profile() {
                                                 // attempt navigator.share if available
                                                 const url = images[currentIndex]?.url;
                                                 if (navigator.share && url) {
-                                                    navigator.share({ title: "Photo", url }).catch(() => {});
+                                                    navigator.share({ title: "Photo", url }).catch(() => { });
                                                 } else {
                                                     // fallback: copy link
                                                     if (url) {
